@@ -6,11 +6,14 @@ import java.util.concurrent.TimeUnit;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Parameters;
@@ -43,11 +46,11 @@ public class Admin {
 		driver.findElement(By.name("ctl00$MainContentPlaceHolder$skyWebLogin$LoginButton")).click();
 		driver.findElement(By.partialLinkText("ADMINISTRATION")).click();
 	}
-	
+
 	@Test(priority = 1)
 	@Parameters({"Label","Radius","Latitude","Longitude"})
 	public void Geofence(String Label,String Radius,String Latitude,String Longitude) throws InterruptedException  {
-		
+
 		driver.findElement(By.partialLinkText("Geofences")).click();
 		driver.findElement(By.id("AddButton")).click();
 		driver.switchTo().frame("SkyTrac_Controls_Window_InnerFrame_0");  
@@ -60,24 +63,85 @@ public class Admin {
 		driver.findElement(By.id("OkButton")).click();
 		Thread.sleep(5000);
 
+
+		boolean presentFlag = false;
+
+		try {
+
+			// Check the presence of alert
+			Alert alert = driver.switchTo().alert();
+			// Alert present; set the flag
+			presentFlag = true;
+			// if present consume the alert
+			alert.accept();
+			driver.switchTo().defaultContent();
+			driver.switchTo().frame("AddGeofenceDialog");
+			Thread.sleep(2000);
+			driver.findElement(By.id("NameText")).clear();
+			driver.findElement(By.id("NameText")).sendKeys("Geo2");
+			driver.findElement(By.id("OkButton")).click();
+			//( Now, click on ok or cancel button )
+
+		} catch (NoAlertPresentException ex) {
+			// Alert not present
+			ex.printStackTrace();
+
+		}
+
+		//return presentFlag;
+
 		//Switch to default and delete the record
 
 		driver.switchTo().defaultContent();
-		driver.findElement(By.id("ctl00_MainContentPlaceHolder_GeofenceControl_RadGrid1_ctl00")).click();
 
-		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_GeofenceControl_RadGrid1_ctl00__0\"]")).click();
+		//driver.findElement(By.xpath="/td"[text()='Geo1']).click();
+		Thread.sleep(2000);
+		driver.findElement(By.id("ctl00_MainContentPlaceHolder_GeofenceControl_RadGrid1_ctl00__0")).click();
+
+		//driver.findElement(By.xpath("//div[contains(text(),'Geo1')]")).click();
+
+		Thread.sleep(2000);
+
+		//driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_GeofenceControl_RadGrid1_ctl00__0\"]")).click();
 
 		driver.findElement(By.id("DeleteButton")).click();
 		Alert alertg = driver.switchTo().alert();	
 
+
 		String alertMsggeo = driver.switchTo().alert().getText();
 		System.out.println(alertMsggeo);
 		alertg.accept();	
-		driver.navigate().back();
-	}
-	
 
-	@Test(priority = 10)
+		Thread.sleep(5000);
+		////	WebDriverWait wait = new WebDriverWait(driver, 15);
+		//WebElement Georecord2 =	wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(By.id("ctl00_MainContentPlaceHolder_GeofenceControl_RadGrid1_ctl00__0"))));
+		WebElement Georecord2 =driver.findElement(By.id("ctl00_MainContentPlaceHolder_GeofenceControl_RadGrid1_ctl00__0"));
+		if 
+		(Georecord2.isEnabled()) {
+			Thread.sleep(2000);
+			Georecord2.click();
+			//driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_GeofenceControl_RadGrid1_ctl00__0\"]")).click();
+
+			driver.findElement(By.id("DeleteButton")).click();
+			Alert alert2 = driver.switchTo().alert();	
+
+
+			String alertMsggeo2 = driver.switchTo().alert().getText();
+			System.out.println(alertMsggeo2);
+			alert2.accept();
+			Thread.sleep(2000);
+			driver.navigate().back();
+		}
+		else {
+			Thread.sleep(2000);
+			driver.navigate().back();
+		}
+
+
+	}
+
+
+	@Test(priority = 3)
 	public void GeofenceNotification() throws InterruptedException {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadTextBox_text")).clear();
 		Thread.sleep(2000);
@@ -87,7 +151,7 @@ public class Admin {
 		Thread.sleep(2000);
 
 		WebElement radio1 = driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadGrid_ctl01_ctl04_selectRadioButton"));
-		
+
 		radio1.click();
 		Thread.sleep(2000);
 		driver.findElement(By.xpath("//a[@id='ctl00_MainContentPlaceHolder_adminControl_skyWizard_SideBarContainer_SideBarList_ctl18_SideBarButton']")).click();
@@ -102,7 +166,7 @@ public class Admin {
 		Thread.sleep(2000); 
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_GeofenceEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EditButton")).click();
 		Thread.sleep(2000); 
-		
+
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_GeofenceEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EmailAddressTextBox\"]")).clear();
 		Thread.sleep(2000); 
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_GeofenceEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EmailAddressTextBox\"]")).sendKeys("user1@rcas.co.in");
@@ -117,7 +181,7 @@ public class Admin {
 		}
 		else{
 			Assert.fail("The edited record has not been updated sucessfully");
-		
+
 			Thread.sleep(3000);
 		}
 
@@ -127,8 +191,8 @@ public class Admin {
 		Thread.sleep(2000);
 		driver.navigate().back();
 	}
-	
-	@Test(priority = 3)
+
+	@Test(priority = 4)
 	public void ETANotification() throws InterruptedException {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadTextBox_text")).clear();
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadTextBox_text")).sendKeys("STS_1643");
@@ -138,7 +202,7 @@ public class Admin {
 		radio15.click();
 		Thread.sleep(2000);
 		driver.findElement(By.xpath("//a[@id=\'ctl00_MainContentPlaceHolder_adminControl_skyWizard_SideBarContainer_SideBarList_ctl20_SideBarButton\']")).click();
-		
+
 		Thread.sleep(2000);
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_ETAEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl03_ctl01_InitInsertButton")).click();
 		Thread.sleep(2000);
@@ -149,7 +213,7 @@ public class Admin {
 		Thread.sleep(2000); 
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_ETAEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EditButton")).click();
 		Thread.sleep(2000); 
-		
+
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_ETAEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EmailAddressTextBox\"]")).clear();
 		Thread.sleep(2000); 
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_ETAEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EmailAddressTextBox\"]")).sendKeys("user2@rcas.co.in");
@@ -165,7 +229,7 @@ public class Admin {
 		}
 		else{
 			Assert.fail("The ETA record has not been updated sucessfully");
-		
+
 			Thread.sleep(3000);
 		}
 
@@ -174,10 +238,10 @@ public class Admin {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_ETAEventControl_skyWizard_EmailControl_etaEmailDeleteConfirmed")).click();
 		Thread.sleep(2000);
 		driver.navigate().back();
-		
+
 	}
-	
-	@Test(priority = 4)
+
+	@Test(priority = 5)
 	public void FlightwatchNotification() throws InterruptedException {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadTextBox_text")).clear();
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadTextBox_text")).sendKeys("STS_1643");
@@ -197,7 +261,7 @@ public class Admin {
 		Thread.sleep(2000); 
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_FlightWatchEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EditButton")).click();
 		Thread.sleep(2000); 
-		
+
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_FlightWatchEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EmailAddressTextBox\"]")).clear();
 		Thread.sleep(2000); 
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_FlightWatchEventControl_skyWizard_EmailControl_emailRadGrid_ctl01_ctl04_EmailAddressTextBox\"]")).sendKeys("user12@rcas.co.in");
@@ -213,7 +277,7 @@ public class Admin {
 		}
 		else{
 			Assert.fail("The Flightwatch record has not been updated sucessfully");
-		
+
 			Thread.sleep(3000);
 		}
 
@@ -222,14 +286,14 @@ public class Admin {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_FlightWatchEventControl_skyWizard_EmailControl_emailDeleteConfirmed")).click();
 		Thread.sleep(2000);
 		driver.navigate().back();
-		
+
 	}
-	
-	
-	
-	
-	
-	@Test(priority =2 )
+
+
+
+
+
+	@Test(priority =2)
 	@Parameters({"Name","Ident","Region","LatitudeText1","LongitudeText1"})
 	public void Georeference(String Name,String Ident,String Region,String LatitudeText1,String LongitudeText1) throws InterruptedException {
 
@@ -259,7 +323,7 @@ public class Admin {
 		Thread.sleep(2000);
 		alert1.accept();	
 		Thread.sleep(2000);
-		
+
 		driver.findElement(By.id("AddButton")).click();
 		driver.switchTo().frame("SkyTrac_Controls_Window_InnerFrame_0"); 
 
@@ -274,7 +338,7 @@ public class Admin {
 		driver.switchTo().defaultContent();
 		Thread.sleep(8000);
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_GeoReferencesControl1_RadGrid1_ctl00")).click();
-		
+
 		driver.findElement(By.partialLinkText("HOME")).click();
 		Thread.sleep(2000);
 		driver.findElement(By.partialLinkText("FLIGHT FOLLOWING")).click();
@@ -289,45 +353,60 @@ public class Admin {
 		action8.moveToElement(element4).build().perform();
 		driver.findElement(By.linkText("Destination...")).click();	
 		Thread.sleep(3000);
-		driver.switchTo().frame("SkyTrac_Controls_Window_InnerFrame_398");
-		
+		driver.switchTo().frame("DestinationWindow");
+
 		Select sunit = new Select(driver.findElement(By.id("CallSignSelect")));
 		sunit.selectByValue("<STS_1643>");
-		
+
 		driver.findElement(By.id("SelectButton")).click();
 		driver.switchTo().defaultContent();
-		driver.switchTo().frame("SkyTrac_Controls_Window_InnerFrame_399");
+		driver.switchTo().frame("DestinationChooserWindow");
 		int count = 0;
-	    String[] exp = {"Georef (Denmark)"};
-	    WebElement dropdown = driver.findElement(By.xpath("//*[@id=\"SkyTrac_Controls_0\"]/select"));  
-	    Select select = new Select(dropdown);
+		String[] exp = {"Georef (Denmark)"};
+		WebElement dropdown = driver.findElement(By.xpath("//*[@id=\"SkyTrac_Controls_0\"]/select"));  
+		Select select = new Select(dropdown);
 
-	    List<WebElement> options = select.getOptions();
-	    for (WebElement we : options) {
-	        for (int i = 0; i < exp.length; i++) {
-	        	System.out.println(we.getText());
-	            if (we.getText().equals(exp[i])) {
-	                count++;
-	            }
-	        }
-	    }
-	    if (count == exp.length) {
-	        System.out.println("Active georeference is listed");
-	    } else {
-	        System.out.println("Active georeference is not listed");
-	    }
-	    driver.findElement(By.id("CancelButton")).click();
-	    driver.switchTo().defaultContent();
-	    driver.switchTo().frame("SkyTrac_Controls_Window_InnerFrame_398");
-	    driver.findElement(By.id("ClearButton")).click();
-	    driver.findElement(By.id("Donebutton")).click();
-	    driver.switchTo().defaultContent();
-	    driver.navigate().back();
+		List<WebElement> options = select.getOptions();
+		for (WebElement we : options) {
+			for (int i = 0; i < exp.length; i++) {
+				System.out.println(we.getText());
+				if (we.getText().equals(exp[i])) {
+					count++;
+				}
+			}
+		}
+		if (count == exp.length) {
+			System.out.println("Active georeference is listed");
+		} else {
+			System.out.println("Active georeference is not listed");
+		}
+		driver.findElement(By.id("CancelButton")).click();
+		driver.switchTo().defaultContent();
+		driver.switchTo().frame("DestinationWindow");
+		driver.findElement(By.id("ClearButton")).click();
+		driver.findElement(By.id("Donebutton")).click();
+		driver.switchTo().defaultContent();
+		driver.navigate().back();
 		Thread.sleep(2000);
+		driver.findElement(By.partialLinkText("ADMINISTRATION")).click();
+		driver.findElement(By.partialLinkText("Georeferences")).click();
+		driver.findElement(By.id("ctl00_MainContentPlaceHolder_GeoReferencesControl1_RadGrid1_ctl00")).click();
+
+		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_GeoReferencesControl1_RadGrid1_ctl00__0\"]")).click();
+
+		driver.findElement(By.id("DeleteButton")).click();
+		Alert alert2 = driver.switchTo().alert();	
+
+		String alertMessage2 = driver.switchTo().alert().getText();
+		System.out.println(alertMessage2);
+		Thread.sleep(2000);
+		alert1.accept();
+		driver.navigate().back();
+
 	}
-	
-	
-	@Test(priority = 5)
+
+
+	@Test(priority = 6)
 	public void EventNotification() throws InterruptedException {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadTextBox_text")).clear();
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadTextBox_text")).sendKeys("STS_1643");
@@ -350,7 +429,7 @@ public class Admin {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_ctl01_EmailGridControl_eventNotificationEmailRadGrid_ctl01_ctl02_ctl01_PerformInsertButton")).click();
 		Thread.sleep(2000);       
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_ctl01_EmailGridControl_eventNotificationEmailRadGrid_ctl01_ctl04_EditButton")).click();
-		
+
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_ctl01_EmailGridControl_eventNotificationEmailRadGrid_ctl01_ctl04_EmailstrTextBox\"]")).clear();
 		Thread.sleep(2000); 
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_ctl01_EmailGridControl_eventNotificationEmailRadGrid_ctl01_ctl04_EmailstrTextBox\"]")).sendKeys("user23@rcas.co.in");
@@ -364,14 +443,14 @@ public class Admin {
 		Thread.sleep(2000);
 	}
 
-	@Test(priority = 6)
+	@Test(priority = 7)
 	public void DVITextMessages() throws InterruptedException {
 		driver.findElement(By.partialLinkText("DVI Text Messages")).click();
 		Thread.sleep(2000);
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_DviTextMessagesMain_ManageMessageGroups_addRecordButton")).click();
 		Thread.sleep(2000);
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_DviTextMessagesMain_AddMessageGroup_dviMsgNameTextBox_text")).clear();
-		driver.findElement(By.id("ctl00_MainContentPlaceHolder_DviTextMessagesMain_AddMessageGroup_dviMsgNameTextBox_text")).sendKeys("NewGroup12");
+		driver.findElement(By.id("ctl00_MainContentPlaceHolder_DviTextMessagesMain_AddMessageGroup_dviMsgNameTextBox_text")).sendKeys("NewGroup14");
 		Actions actionDVI =new Actions(driver);
 		actionDVI.sendKeys(Keys.PAGE_DOWN).build().perform();
 		Thread.sleep(2000);
@@ -391,8 +470,8 @@ public class Admin {
 		driver.navigate().back();
 		Thread.sleep(2000);
 	}
-	
-	@Test(priority = 7)
+
+	@Test(priority = 8)
 	public void DVIPhonenumber() throws InterruptedException {
 		driver.findElement(By.partialLinkText("DVI Phone Numbers")).click();
 		Thread.sleep(2000);
@@ -432,7 +511,7 @@ public class Admin {
 		Thread.sleep(2000);
 	}
 
-	@Test(priority = 8)
+	@Test(priority = 9)
 	public void Overdue() throws InterruptedException {
 		driver.findElement(By.partialLinkText("Overdue Notification(s)")).click();
 		Thread.sleep(3000);
@@ -445,7 +524,7 @@ public class Admin {
 		Thread.sleep(2000);
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_OverdueNotificationManager_AddOrEditNotificationSetting_OverdueNotificationsEmailsDataGrid_AddEmailButton")).click();
 		Thread.sleep(2000);
-		
+
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_OverdueNotificationManager_AddOrEditNotificationSetting_OverdueNotificationsEmailsDataGrid_EmailTextBox")).sendKeys("user1@rcas.co.in");
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_OverdueNotificationManager_AddOrEditNotificationSetting_OverdueNotificationsEmailsDataGrid_SaveEmailButton")).click();
 		Thread.sleep(2000);
@@ -458,11 +537,11 @@ public class Admin {
 		Thread.sleep(2000);
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_OverdueNotificationManager_AddOrEditNotificationSetting_EmailSubjectTextBox")).sendKeys(" text to test");
 		Thread.sleep(2000);
-		
+
 		Actions actionovr1 = new Actions(driver);
 		actionovr1.sendKeys(Keys.PAGE_DOWN).build().perform();
 		Thread.sleep(2000);
-		
+
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_OverdueNotificationManager_AddOrEditNotificationSetting_SaveNewButton")).click();
 		Thread.sleep(2000);
 		WebElement radiood = driver.findElement(By.id("ctl00_MainContentPlaceHolder_OverdueNotificationManager_ConfigureNotificationSettings_OverdueNotificationsListDataGrid_OverdueNotificationsListRadGrid_ctl00_ctl04_SelectOverdueNotificationSetting"));
@@ -479,9 +558,9 @@ public class Admin {
 		driver.navigate().back();
 		Thread.sleep(2000);
 	}
-	
-	
-	@Test(priority = 9)
+
+
+	@Test(priority = 10)
 	public void Cockpit() throws InterruptedException {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_unitRadTextBox_text")).sendKeys("STS_1643");
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_adminControl_skyWizard_chooseUnit_findButton")).click();
@@ -499,7 +578,7 @@ public class Admin {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_CDPControl1_skyWizard_cockpitInterfacePropertiesControl_cockpitLabel")).sendKeys("55555");
 		String editidentifier = driver.findElement(By.id("ctl00_MainContentPlaceHolder_CDPControl1_skyWizard_cockpitInterfacePropertiesControl_cockpitLabel")).getAttribute("value");
 		System.out.println("value="+editidentifier);
-		
+		Thread.sleep(2000);
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_CDPControl1_skyWizard_cockpitInterfacePropertiesControl_saveButton")).click();
 		String chgvalue = driver.findElement(By.id("ctl00_MainContentPlaceHolder_CDPControl1_skyWizard_cockpitInterfaceListControl_unitLabel0")).getAttribute("innerText");
 		System.out.println("value="+chgvalue);
@@ -509,11 +588,11 @@ public class Admin {
 		}
 		else{
 			Assert.fail("The Identifier has not been updated sucessfully");
-		
+
 			Thread.sleep(3000);
 		}
-		
-		
+
+
 		//Test case 1167
 		driver.findElement(By.xpath("//*[@id=\"ctl00_MainContentPlaceHolder_CDPControl1_skyWizard_SideBarContainer_SideBarList_ctl02_SideBarButton\"]")).click();
 		WebElement radiocdp = driver.findElement(By.id("ctl00_MainContentPlaceHolder_CDPControl1_skyWizard_EditQuickMailControl_unitRadGrid_ctl01_ctl04_selectRadioButton"));
@@ -530,16 +609,16 @@ public class Admin {
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_CDPControl1_skyWizard_AddressBookControl_txtPhoneNumber_text")).sendKeys("123456789");
 		driver.findElement(By.id("ctl00_MainContentPlaceHolder_CDPControl1_skyWizard_AddressBookControl_cmdModify")).click();
 		Alert alertcdu1 = driver.switchTo().alert();	
-		
-				String alertcdu = driver.switchTo().alert().getText();
-				System.out.println(alertcdu);
-				Thread.sleep(2000);
-				alertcdu1.accept();	
-				Thread.sleep(2000);
-				driver.navigate().back();
-				Thread.sleep(2000);
+
+		String alertcdu = driver.switchTo().alert().getText();
+		System.out.println(alertcdu);
+		Thread.sleep(2000);
+		alertcdu1.accept();	
+		Thread.sleep(2000);
+		driver.navigate().back();
+		Thread.sleep(2000);
 	}
-		
-	
-	
+
+
+
 }
